@@ -115,7 +115,7 @@ import { PrimaryGeneratedColumn } from 'typeorm';
 export class %s extends BaseModel {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-j}`, mdf["pascal"])
+}`, mdf["pascal"])
 
 	write(fname, content)
 }
