@@ -7,7 +7,7 @@ Code gen cli tool for clean-nestjs-template
 * needs Go installed 
 
 ``` sh
-git clone http://github.com/c-santos/nest-utils
+// clone repo
 cd nest-utils
 go build
 sudo ln -s $PWD/nest-utils /usr/local/bin
