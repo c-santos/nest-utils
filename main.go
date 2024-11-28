@@ -111,11 +111,13 @@ func createEntity(fname string, mdf map[string]string) {
 func createModel(fname string, mdf map[string]string) {
 	content := fmt.Sprintf(`import { BaseModel } from './base.model';
 import { PrimaryGeneratedColumn } from 'typeorm';
+import { Entity } from 'typeorm'
 
+@Entity('%s')
 export class %s extends BaseModel {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-}`, mdf["pascal"])
+}`, mdf["snake"], mdf["pascal"])
 
 	write(fname, content)
 }
