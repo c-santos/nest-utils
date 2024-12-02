@@ -183,7 +183,7 @@ export class %sController {
 
 func createModule(fname string, mdf map[string]string) {
 	content := fmt.Sprintf(`import { Module } from '@nestjs/common';
-import { %sController } from '@/infrastructure/http/controllers/%s.controllers';
+import { %sController } from '@/infrastructure/http/controllers/%s.controller';
 import { %sService } from '@/application/services/%s.service';
 import { %sRepository } from '@/infrastructure/database/repositories/%s.repository';
 import { I%sRepository } from '@/domain/interfaces/I%sRepository';
