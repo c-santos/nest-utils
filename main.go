@@ -174,7 +174,7 @@ import { Inject } from '@nestjs/common';
 
 @Controller('endpot') // CHANGE THIS
 export class %sController {
-	constructor(@Inject(%sService) %sService: %sService) {}
+	constructor(@Inject(%sService) private %sService: %sService) {}
 }
 `, mdf["pascal"], mdf["snake"], mdf["pascal"], mdf["pascal"], mdf["camel"], mdf["pascal"])
 
