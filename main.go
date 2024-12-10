@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,25 +12,53 @@ func main() {
 	args := os.Args
 
 	if len(args) < 1 {
-		fmt.Println("provde args!")
+		fmt.Println("provide args!")
 		return
 	}
 
-	if args[1] == "spawn" {
+	paths := map[string]string{
+		"module":     "src/infrastructure/modules",
+		"controller": "src/infrastructure/http/controllers",
+		"service":    "src/application/services",
+		"irepo":      "src/domain/interfaces",
+		"repository": "src/infrastructure/database/repositories",
+		"entity":     "src/domain/entities",
+		"model":      "src/infrastructure/database/models",
+	}
+
+	if args[1] == "gen" {
+		gebbing := args[2:]
+		fmt.Println("Generating files for the ff layers... ", gebbing)
+
+		moduleName := input("Provide module name: ")
+		moduleNameFormats := parseModuleName(moduleName)
+
+		for _, layer := range args {
+			fileName := filepath.Join(paths[layer], fmt.Sprintf("%s.%s.ts", moduleNameFormats["snake"], layer))
+			switch layer {
+			case "entity":
+				createEntity(fileName, moduleNameFormats)
+			case "model":
+				createModel(fileName, moduleNameFormats)
+			case "repository":
+				createRepo(fileName, moduleNameFormats)
+			case "irepo":
+				irepoFileName := filepath.Join(paths[layer], fmt.Sprintf("I%sRepository.ts", moduleNameFormats["pascal"]))
+				createIRepo(irepoFileName, moduleNameFormats)
+			case "service":
+				createService(fileName, moduleNameFormats)
+			case "controller":
+				createController(fileName, moduleNameFormats)
+			case "module":
+				createModule(fileName, moduleNameFormats)
+			}
+		}
+	} else if args[1] == "spawn" {
 		fmt.Println("spawning...")
+
 		if len(args) == 3 {
 			moduleName := args[2]
 			moduleNameFormats := parseModuleName(moduleName)
-
-			paths := map[string]string{
-				"module":     "src/infrastructure/modules",
-				"controller": "src/infrastructure/http/controllers",
-				"service":    "src/application/services",
-				"irepo":      "src/domain/interfaces",
-				"repository": "src/infrastructure/database/repositories",
-				"entity":     "src/domain/entities",
-				"model":      "src/infrastructure/database/models",
-			}
 
 			for layer, path := range paths {
 
@@ -58,6 +87,9 @@ func main() {
 			fmt.Println("provide module filename!")
 			return
 		}
+	} else {
+		fmt.Println("unknown command")
+		return
 	}
 }
 
@@ -69,7 +101,6 @@ func capitalize(s string) string {
 }
 
 func parseModuleName(moduleName string) map[string]string {
-	fmt.Println("spawning module...\t", moduleName)
 	splitted := strings.Split(moduleName, "-")
 
 	var camelCase string
@@ -83,11 +114,15 @@ func parseModuleName(moduleName string) map[string]string {
 		pascalCase += capitalize(splitted[i])
 	}
 
-	return map[string]string{
+	formats := map[string]string{
 		"pascal": pascalCase,
 		"camel":  camelCase,
 		"snake":  moduleName,
 	}
+
+	fmt.Println("Parsed module name in multiple formats: ", formats)
+
+	return formats
 }
 
 func createEntity(fname string, mdf map[string]string) {
@@ -111,13 +146,11 @@ func createEntity(fname string, mdf map[string]string) {
 func createModel(fname string, mdf map[string]string) {
 	content := fmt.Sprintf(`import { BaseModel } from './base.model';
 import { PrimaryGeneratedColumn } from 'typeorm';
-import { Entity } from 'typeorm'
 
-@Entity('%s')
 export class %s extends BaseModel {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-}`, mdf["snake"], mdf["pascal"])
+j}`, mdf["pascal"])
 
 	write(fname, content)
 }
@@ -174,7 +207,7 @@ import { Inject } from '@nestjs/common';
 
 @Controller('endpot') // CHANGE THIS
 export class %sController {
-	constructor(@Inject(%sService) private %sService: %sService) {}
+	constructor(@Inject(%sService) %sService: %sService) {}
 }
 `, mdf["pascal"], mdf["snake"], mdf["pascal"], mdf["pascal"], mdf["camel"], mdf["pascal"])
 
@@ -183,7 +216,7 @@ export class %sController {
 
 func createModule(fname string, mdf map[string]string) {
 	content := fmt.Sprintf(`import { Module } from '@nestjs/common';
-import { %sController } from '@/infrastructure/http/controllers/%s.controller';
+import { %sController } from '@/infrastructure/http/%s.controllers';
 import { %sService } from '@/application/services/%s.service';
 import { %sRepository } from '@/infrastructure/database/repositories/%s.repository';
 import { I%sRepository } from '@/domain/interfaces/I%sRepository';
@@ -222,4 +255,17 @@ func write(fname string, content string) {
 		return
 	}
 	fmt.Println("created\t", fname)
+}
+
+func input(label string) string {
+	var s string
+	r := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Fprint(os.Stderr, label+" ")
+		s, _ = r.ReadString('\n')
+		if s != "" {
+			break
+		}
+	}
+	return strings.TrimSpace(s)
 }
